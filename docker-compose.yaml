@@ -53,6 +53,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 10s
+  example-app:
+    build: ./example-app
+    ports:
+      - 3000:3000
 configs:
   envoy_config:
     file: ./config/envoy.yaml
