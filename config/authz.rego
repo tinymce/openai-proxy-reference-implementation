@@ -12,9 +12,15 @@ allow := { "allowed": true } if {
 }
 
 # OpenAI
-allow := openai.authorize_openai_chat(input.parsed_body, moderation) if {
+allow := openai.authorize_openai_chat(input.parsed_body, moderation, example_app_approves) if {
 	http_request.method == "POST"
 	http_request.path == "/v1/chat/completions"
 	moderation := openai.moderate(input.parsed_body.messages[_].content)
+	authenticated_response := http.send({
+		"method": "GET",
+		"url": "http://example-app:3000/authenticated",
+		"headers": { "cookie": http_request.headers.cookie },
+		"raise_error": false
+	})
+	example_app_approves := authenticated_response.status_code == 200
 }
-

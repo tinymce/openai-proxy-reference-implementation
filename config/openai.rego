@@ -12,6 +12,13 @@ allow_to_openai := {
 	"headers": {"authorization": openai_auth_header},
 }
 
+deny_due_to_app_auth := {
+	"allowed": false,
+	"body": "Not authenticated to application",
+	"response_headers_to_add": {"content-type": "text/plain"},
+	"http_status": 400,
+}
+
 deny_due_to_moderation(violations) := {
 	"allowed": false,
 	"body": concat(" ", [
@@ -85,7 +92,9 @@ moderate(inputs) := outcome if {
 	}
 }
 
-authorize_openai_chat(req, moderation) := deny_due_to_moderation(moderation.violations) if {
+authorize_openai_chat(req, moderation, example_app_approves) := deny_due_to_app_auth if {
+	not example_app_approves
+} else := deny_due_to_moderation(moderation.violations) if {
 	not moderation.ok
 } else := allow_to_openai if {
 	moderation.ok
