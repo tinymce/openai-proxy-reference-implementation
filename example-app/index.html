@@ -58,7 +58,7 @@
       });
       if (resp.ok) {
         const data = await resp.json();
-        return data.choices[0].message.content.trim();
+        return { type: 'string', data: data.choices[0].message.content.trim() };
       } else {
         const errorMessage = await resp.text();
         return Promise.reject(`Failed to communicate with the ChatGPT API: ${errorMessage}`);
