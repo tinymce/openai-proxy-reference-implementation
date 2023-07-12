@@ -7,6 +7,7 @@
   <link rel="shortcut icon"type="image/x-icon" href="data:image/x-icon;,">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
   <script src="https://cdn.tiny.cloud/1/qagffr3pkuv17a8on1afax661irst1hbr4e6tbv888sz91jc/tinymce/6-dev/tinymce.min.js" referrerpolicy="origin"></script>
+  <script src="/ai-request.js"></script>
 </head>
 <body>
   <nav class="navbar bg-dark border-bottom border-bottom-dark mb-3" data-bs-theme="dark">
@@ -36,35 +37,6 @@
       fetch('/message', { method: 'post', body: new URLSearchParams({ message }) });
     }
 
-    async function ai_request(request) {
-      const resp = await fetch('http://localhost:8080/v1/chat/completions', {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
-          temperature: 0.7,
-          max_tokens: 800,
-          messages: [
-            {
-              role: 'user',
-              content: request.prompt
-            }
-          ],
-        })
-      });
-      if (resp.ok) {
-        const data = await resp.json();
-        return { type: 'string', data: data.choices[0].message.content.trim() };
-      } else {
-        const errorMessage = await resp.text();
-        return Promise.reject(`Failed to communicate with the ChatGPT API: ${errorMessage}`);
-      }
-    }
-
     function makeEditor() {
       return new Promise((resolve) => {
         tinymce.init({
@@ -74,7 +46,7 @@
           menu: { tools: { title: 'Tools', items: 'aidialog aishortcuts' } },
           init_instance_callback: (editor) => resolve(editor),
           save_onsavecallback: (editor) => save(editor.getContent()),
-          ai_request
+          ai_request // see ai-request.js for function definition
         });
       })
     }

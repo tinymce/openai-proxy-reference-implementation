@@ -1,6 +1,6 @@
 FROM node:lts
 
-COPY index.html index.js package.json package-lock.json /app/
+COPY index.html ai-request.js index.js package.json package-lock.json /app/
 
 WORKDIR /app
 
