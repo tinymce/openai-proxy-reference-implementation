@@ -1,13 +1,13 @@
 static_resources:
   listeners:
-    - address:
+    - address: # listen on port 8080 on both IPv4 and IPv6 
         socket_address:
-          address: "::"
+          address: "::" # listen to all local addresses on IPv6
           port_value: 8080
       additional_addresses:
         - address:
             socket_address:
-              address: 0.0.0.0
+              address: 0.0.0.0 # listen to all local address on IPv4
               port_value: 8080
       filter_chains:
         - filters:
@@ -18,33 +18,33 @@ static_resources:
                 stat_prefix: ingress_http
                 route_config:
                   name: local_route
-                  virtual_hosts:
+                  virtual_hosts: # virtual hosts allow multiple DNS records (host names) to refer to a single IP/machine
                     - name: backend
-                      domains:
+                      domains: # in this case we're not using virtual hosts so we say everything goes to the same machine
                         - "*"
-                      routes:
+                      routes: # defines which requests should be forwarded
                         - match:
-                            prefix: "/v1/"
+                            prefix: "/v1/" # anything going to the path /v1/ is to be forwarded to openai
                           route:
-                            cluster: openai
-                            host_rewrite_literal: "api.openai.com"
+                            cluster: openai # the cluster is defined at the bottom of this file
+                            host_rewrite_literal: "api.openai.com" # when we forward we don't want the host header to be localhost
                       typed_per_filter_config:
-                        envoy.filters.http.cors:
+                        envoy.filters.http.cors: # Rules for applying CORS headers (applied in http_filters below)
                           "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
                           allow_credentials: true
                           allow_headers: "*"
-                          allow_methods: "GET,POST,OPTIONS"
-                          allow_origin_string_match:
+                          allow_methods: "GET,POST,OPTIONS" 
+                          allow_origin_string_match: # match connections for localhost and the IPv4 and IPv6 literals for the local address
                             - safe_regex:
                                 regex: https?://localhost(:\d+)?
                             - safe_regex:
-                                regex: https?://127.0.0.1(:\d+)?
+                                regex: https?://127\.0\.0\.1(:\d+)?
                             - safe_regex:
                                 regex: https?://\[::1\](:\d+)?
                           allow_private_network_access: true
-                          max_age: "86400"
+                          max_age: "86400" # cache for 1 day
                 http_filters:
-                  - name: envoy.filters.http.health_check
+                  - name: envoy.filters.http.health_check # matches the health-check path /ping returns 200 OK on success
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.health_check.v3.HealthCheck
                       pass_through_mode: false
@@ -55,44 +55,42 @@ static_resources:
                         - name: ":path"
                           string_match:
                             exact: "/ping"
-                  - name: envoy.filters.http.header_to_metadata
+                  - name: envoy.filters.http.header_to_metadata # keep track of the request path so a later step can check it
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.header_to_metadata.v3.Config
                       request_rules:
-                        # Make request path available for ext_authz
-                        - header: :path
+                        - header: :path # Make request path available for ext_authz
                           on_header_present:
-                            metadata_namespace: envoy.filters.http.ext_authz
+                            metadata_namespace: envoy.filters.http.ext_authz # this is queried in filter_enabled_metadata below
                             key: :path
                             type: STRING
                           remove: false
-                  - name: extensions.filters.http.cors
+                  - name: extensions.filters.http.cors # add CORS headers using the rules above
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
-                  - name: envoy.filters.http.ext_authz
+                  - name: envoy.filters.http.ext_authz # this filter applies the rules in config/authz.rego using OPA
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
                       grpc_service:
                         google_grpc:
-                          target_uri: opa:9191
-                          stat_prefix: ext_authz
+                          target_uri: opa:9191 # talk to OPA on port 9191
+                          stat_prefix: ext_authz # name used in the Envoy admin/debug page to report statistics
                         timeout: 5s
-                      failure_mode_allow: false
-                      # Enable ext_authz only for OpenAI API /v1/ paths
-                      filter_enabled_metadata:
+                      failure_mode_allow: false # if OPA doesn't respond, deny the request
+                      filter_enabled_metadata:  # use only for OpenAI API /v1/ paths
                         filter: envoy.filters.http.ext_authz
                         path:
                           - key: :path
                         value:
                           string_match:
                             prefix: /v1/
-                      status_on_error:
+                      status_on_error: # configure failures as server error rather than client error
                         code: 503
-                      transport_api_version: V3
+                      transport_api_version: V3 # based on the container we are using for OPA, V3 is preferred
                       with_request_body:
-                        max_request_bytes: 1048576
-                        allow_partial_message: true
-                  - name: envoy.filters.http.router
+                        max_request_bytes: 1048576 # limit the body size to 1MB
+                        allow_partial_message: false # if the body doesn't fit then reject the request
+                  - name: envoy.filters.http.router # the filter chain should always end in a http router
                     typed_config:
                       "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
   clusters:
