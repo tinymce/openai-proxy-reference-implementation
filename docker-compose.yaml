@@ -32,7 +32,6 @@ services:
       - "--config-file=/config/opa.yaml"
       - "--addr=localhost:8181"
       - "--diagnostic-addr=localhost:8282"
-      - "--ignore=.*"
       - /policy/
     environment:
       - OPENAI_API_KEY
