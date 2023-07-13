@@ -1,4 +1,11 @@
-title OpenAI proxy call flows
+title OpenAI proxy call flows diagram
+
+participant "Main Application with TinyMCE\nFigure 1.0" as TinyMCE
+participant "Proxy\nFigure 2.0" as Proxy
+participant "Integrator Auth Endpoint\nFigure 3.0" as Integrator Auth Endpoint
+participant "OpenAI Moderation API\nFigure 4.0" as OpenAI Moderation API
+participant "OpenAI Chat Completions API\nFigure 5.0" as OpenAI Chat Completions API
+
 
 TinyMCE->Proxy: Chat completion request
 Proxy->Integrator Auth Endpoint: Allow this chat completion request?
