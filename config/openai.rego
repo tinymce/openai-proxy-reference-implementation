@@ -3,9 +3,9 @@ package openai
 import future.keywords
 
 # Read secret from environment, use a default value so we don't have to detect `undefined`
-openai_api_key := object.get(opa.runtime().env, "OPENAI_API_KEY", "")
+openai_api_key := object.get(opa.runtime().env, "OPENAI_API_KEY", null)
 
-api_key_ok := openai_api_key != ""
+api_key_ok := is_null(openai_api_key) == false
 
 openai_auth_header := concat(" ", ["Bearer", openai_api_key]) if {
 	api_key_ok
