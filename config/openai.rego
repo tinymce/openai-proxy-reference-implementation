@@ -91,6 +91,4 @@ moderate(inputs) := outcome if {
 
 authorize_openai_chat(req, moderation) := deny_due_to_moderation(moderation.violations) if {
 	not moderation.ok
-} else := allow_to_openai if {
-	moderation.ok
-}
+} else := allow_to_openai
