@@ -22,9 +22,10 @@ function ai_request(request, respondWith) {
         openWhenHidden: true,
         signal,
         async onopen(response) {
-          if (response.ok && response.headers.get('content-type').indexOf('text/event-stream') !== -1) {
-              return; // everything's good
-          } else if (response.headers.get('content-type').indexOf('application/json') !== -1) {
+          const contentType = response.headers.get('content-type');
+          if (response.ok && contentType?.includes('text/event-stream')) {
+            return; // everything's good
+          } else if (contentType?.includes('application/json')) {
             throw new Error((await response.json())?.error?.message); // openai returns json on error
           } else {
             throw new Error(await response.text()); // OPA returns plain text
