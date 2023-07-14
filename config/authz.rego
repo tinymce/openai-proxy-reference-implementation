@@ -13,6 +13,13 @@ deny_due_to_app_auth := {
 	"http_status": 400,
 }
 
+deny_due_to_missing_api_key := {
+	"allowed": false,
+	"body": "Required environment variable OPENAI_API_KEY is not set",
+	"response_headers_to_add": {"content-type": "text/plain"},
+	"http_status": 500,
+}
+
 # Allow CORS preflight checks
 allow := { "allowed": true } if {
 	http_request.method == "OPTIONS"
@@ -27,6 +34,8 @@ allow := deny_due_to_app_auth if { # check authentication
 		"raise_error": false
 	})
 	not authenticated_response.status_code == 200
+} else := deny_due_to_missing_api_key if {
+	not openai.api_key_ok
 } else := openai.authorize_openai_chat(input.parsed_body, moderation) if {	# check OpenAI moderation
 	http_request.method == "POST"
 	http_request.path == "/v1/chat/completions"
