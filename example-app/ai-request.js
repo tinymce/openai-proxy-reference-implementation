@@ -6,7 +6,7 @@ function ai_request(request, respondWith) {
   respondWith.stream(async (signal, streamMessage) => {
     // module to fetch the event stream from ChatGPT 3.5
     const { fetchEventSource } = await fetchEventSourceModule;
-    // fetch an event stream from ChatGPT via the Envoy proxy
+    // fetch an event stream from ChatGPT via the Envoy proxy [Ref-1]
     return fetchEventSource(
       'http://localhost:8080/v1/chat/completions',
       {
@@ -27,13 +27,13 @@ function ai_request(request, respondWith) {
           const contentType = response.headers.get('content-type');
           if (response.ok && contentType?.includes('text/event-stream')) {
             return; // everything's good
-          } else if (contentType?.includes('application/json')) {
+          } else if (contentType?.includes('application/json')) { // [Ref-1.2] [Ref-1.3]
             throw new Error((await response.json())?.error?.message); // openai returns json on error
           } else {
             throw new Error(await response.text()); // OPA returns plain text
           }
         },
-        // handler for messages received from ChatGPT 3.5
+        // handler for messages received from ChatGPT 3.5 [Ref-1.1]
         onmessage({ data }) {
           if (data !== '[DONE]') {
             const message = JSON.parse(data)?.choices[0]?.delta?.content;

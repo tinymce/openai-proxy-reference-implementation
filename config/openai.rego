@@ -29,7 +29,7 @@ deny_due_to_moderation(violations) := {
 # https://platform.openai.com/docs/api-reference/moderations
 moderate(inputs) := outcome if {
 	print("Moderating inputs", inputs)
-	moderation_response := http.send({
+	moderation_response := http.send({ # [Ref-3]
 		"method": "POST",
 		"url": "https://api.openai.com/v1/moderations",
 		"headers": {"authorization": openai_auth_header},
@@ -66,6 +66,7 @@ moderate(inputs) := outcome if {
 	# 		}
 	# 	]
 	# }
+	# [Ref-3.1] [Ref-3.2]
 	print("Received moderation response", moderation_response)
 	ok := all({ok |
 		some i
@@ -91,4 +92,4 @@ moderate(inputs) := outcome if {
 
 authorize_openai_chat(req, moderation) := deny_due_to_moderation(moderation.violations) if {
 	not moderation.ok
-} else := allow_to_openai
+} else := allow_to_openai # [Ref-4]

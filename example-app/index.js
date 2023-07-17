@@ -52,7 +52,7 @@ app.use(expressSession({
 app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/ai-request.js', (_req, res) => res.sendFile(path.join(__dirname, 'ai-request.js')));
 
-// endpoint to check if the request contains an authenticated session
+// endpoint to check if the request contains an authenticated session [Ref-2.1] [Ref-2.2]
 app.get('/authenticated', (req, res) => res.status(req.session.user ? 200 : 403).send());
 
 // endpoint to get the current message of the day from the message.html file

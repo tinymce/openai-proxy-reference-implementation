@@ -6,7 +6,7 @@ import data.openai
 
 default action_allowed = false
 
-deny_due_to_app_auth := {
+deny_due_to_app_auth := { # [Ref-1.2]
 	"allowed": false,
 	"body": "Not authenticated to application",
 	"response_headers_to_add": {"content-type": "text/plain"},
@@ -26,7 +26,7 @@ allow := { "allowed": true } if {
 }
 
 
-allow := deny_due_to_app_auth if { # check authentication
+allow := deny_due_to_app_auth if { # check authentication [Ref-2]
 	authenticated_response := http.send({
 		"method": "GET",
 		"url": "http://example-app:3000/authenticated",
@@ -36,7 +36,7 @@ allow := deny_due_to_app_auth if { # check authentication
 	not authenticated_response.status_code == 200
 } else := deny_due_to_missing_api_key if {
 	not openai.api_key_ok
-} else := openai.authorize_openai_chat(input.parsed_body, moderation) if {	# check OpenAI moderation
+} else := openai.authorize_openai_chat(input.parsed_body, moderation) if {	# check OpenAI moderation [Ref-3]
 	http_request.method == "POST"
 	http_request.path == "/v1/chat/completions"
 	moderation := openai.moderate(input.parsed_body.messages[_].content)
