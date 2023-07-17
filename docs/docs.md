@@ -12,13 +12,13 @@ The reference application is a simple nodejs server which serves a single page â
 
 The NodeJS server has 6 endpoints:
 
-- `GET /` - serves the application page.
-- `GET /ai-request.js` - serves the ChatGPT shim.
-- `GET /authenticated` - returns 200 for a logged in user and 403 for a logged out (unauthenticated) user.
-- `GET /message` - serves the current message of the day.
-- `POST /message` - updates the current message of the day.
-- `POST /login` - authenticates a username/password and creates a session cookie so the users is logged-in.
-- `POST /logout` - invalidates the session cookie so the user is logged-out
+- [`GET /`](../example-app/index.js#L52) - serves the application page.
+- [`GET /ai-request.js`](../example-app/index.js#L53) - serves the ChatGPT shim.
+- [`GET /authenticated`](../example-app/index.js#L56) - returns 200 for a logged in user and 403 for a logged out (unauthenticated) user.
+- [`GET /message`](../example-app/index.js#L59) - serves the current message of the day.
+- [`POST /message`](../example-app/index.js#L71) - updates the current message of the day.
+- [`POST /login`](../example-app/index.js#L87) - authenticates a username/password and creates a session cookie so the users is logged-in.
+- [`POST /logout`](../example-app/index.js#L104) - invalidates the session cookie so the user is logged-out
 
 The application has 2 states: 
 
