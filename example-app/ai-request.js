@@ -11,7 +11,7 @@ function ai_request(request, respondWith) {
       'http://localhost:8080/v1/chat/completions',
       {
         method: 'POST',
-        // the Authorization header containing the OpenAI API key is added by
+        // the authorization header containing the OpenAI API key is added by
         // the proxy so it does not need to be included in the client code
         headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({
