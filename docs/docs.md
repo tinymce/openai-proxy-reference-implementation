@@ -6,6 +6,8 @@ This is a reference implementation showing developers how to integrate their Tin
 
 Its recommended you review the OpenAi Proxy call flows diagram as it provides a high level overview of the interactions between the required components that enables the OpenAi suggestions feature.  The documentation will describe in more detail how to implement these interactions as a reference towards configuring your own solution.
 
+![Diagram](flow-diagram/flowdiagram.svg)
+
 ## Main **Application with TinyMCE [Figure 1.0]**
 
 The reference application is a simple nodejs server which serves a single page “Message of the Day” application. 
