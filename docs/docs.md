@@ -31,7 +31,7 @@ The application has 2 states:
 
 The AI plugin is agnostic to the AI provider allowing you to adapt different AI backends, to do that the integrator has to provide some code to adapt to the provider API. In the case of this example we are using ChatGPT 3.5.
 
-```
+``` javascript
 async function ai_request(request) {
   const resp = await fetch('http://localhost:8080/v1/chat/completions', {
     method: 'POST',
