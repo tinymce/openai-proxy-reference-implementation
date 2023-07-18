@@ -63,7 +63,7 @@ async function ai_request(request) {
 
 ```
 
-In that code snippet we connect to ChatGPT via the envoy proxy running on [localhost](http://localhost) port 8080.
+In the code snippet above we connect to ChatGPT via the envoy proxy running on [localhost](http://localhost) port 8080.
 
 It is worth noting that we do not need to provide an API key for ChatGPT because that will be added by the envoy proxy, this serves to hide the ChatGTP API key.
 
