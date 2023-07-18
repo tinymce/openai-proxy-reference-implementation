@@ -34,7 +34,7 @@ The AI plugin is agnostic to the AI provider allowing you to adapt different AI 
 
 In that code snippet we connect to ChatGPT via the envoy proxy running on [localhost](http://localhost) port 8080.
 
-It is worth noting that we do not need to provide an API key for ChatGPT because that will be added by the envoy proxy.
+It is worth noting that we do not need to provide an API key for ChatGPT because that will be added by the envoy proxy, this serves to hide the ChatGTP API key.
 
 ## **Proxy [Figure 2.0]**
 
