@@ -1,7 +1,7 @@
 {
   "name": "simple-message-of-day",
   "version": "1.0.0",
-  "description": "A very simple message of the day app.",
+  "description": "A very simple message of the day app, demonstrating TinyMCE with OpenAi ChatGTP integration",
   "main": "index.js",
   "author": "Ephox Corporation DBA Tiny Technologies, Inc",
   "license": "MIT",
