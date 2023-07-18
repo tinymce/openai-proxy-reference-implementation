@@ -73,7 +73,13 @@ fashion. It also specifies that the list of IP addresses should be regularly que
 to ensure changes are reflected.
 - Lines 117 to 129: Tells the proxy to use TLS when contacting api.openai.com.
 
+### opa.yaml
+The [`opa.yaml`](../config/opa.yaml) file defines what the open policy agent does.
 
+- Lines 1 to 4: Sets the port (9191) and path (`envoy/authz/allow`) for the remote procedure call. 
+The `envoy/authz/allow` refers to the package `envoy.authz` and the variable `allow` defined in the file
+[`authz.rego`](../config/authz.rego).
+- Lines 5 and 6: Enables logging to the console.
 
 ## **Integrator Auth Endpoint [Figure 3.0]**
 
