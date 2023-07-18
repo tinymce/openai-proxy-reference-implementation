@@ -29,8 +29,39 @@ The application has 2 states:
 
 ### ChatGPT shim
 
-The AI plugin is agnostic to the AI provider allowing you to adapt different AI backends however to do that the integrator has to provide some code to adapt to the provider API. In the case of this example we are using ChatGPT 3.5.
+The AI plugin is agnostic to the AI provider allowing you to adapt different AI backends, to do that the integrator has to provide some code to adapt to the provider API. In the case of this example we are using ChatGPT 3.5.
 
+```
+async function ai_request(request) {
+  const resp = await fetch('http://localhost:8080/v1/chat/completions', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-3.5-turbo',
+      temperature: 0.7,
+      max_tokens: 800,
+      messages: [
+        {
+          role: 'user',
+          content: request.prompt
+        }
+      ],
+    })
+  });
+  if (resp.ok) {
+    const data = await resp.json();
+    return { type: 'string', data: data.choices[0].message.content.trim() };
+  } else {
+    const errorMessage = await resp.text();
+    return Promise.reject(`Failed to communicate with the ChatGPT API: ${errorMessage}`);
+  }
+}
+
+```
 
 In that code snippet we connect to ChatGPT via the envoy proxy running on [localhost](http://localhost) port 8080.
 
