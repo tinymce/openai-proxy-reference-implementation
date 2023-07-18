@@ -1,43 +1,25 @@
 package envoy.authz
 
 import future.keywords
-import input.attributes.request.http as http_request
-import data.openai
+import input.attributes.request.http as http_request # access the request data
+import data.openai # import functions from openai.rego
+import data.webapp # import functions from webapp.rego
 
 default action_allowed = false
 
-deny_due_to_app_auth := { # [Ref-1.2]
-	"allowed": false,
-	"body": "Not authenticated to application",
-	"response_headers_to_add": {"content-type": "text/plain"},
-	"http_status": 400,
-}
-
-deny_due_to_missing_api_key := {
-	"allowed": false,
-	"body": "Required environment variable OPENAI_API_KEY is not set",
-	"response_headers_to_add": {"content-type": "text/plain"},
-	"http_status": 500,
-}
-
 # Allow CORS preflight checks
 allow := { "allowed": true } if {
-	http_request.method == "OPTIONS"
+  http_request.method == "OPTIONS"
 }
 
-
-allow := deny_due_to_app_auth if { # check authentication [Ref-2]
-	authenticated_response := http.send({
-		"method": "GET",
-		"url": "http://example-app:3000/authenticated",
-		"headers": { "cookie": http_request.headers.cookie },
-		"raise_error": false
-	})
-	not authenticated_response.status_code == 200
-} else := deny_due_to_missing_api_key if {
-	not openai.api_key_ok
-} else := openai.authorize_openai_chat(input.parsed_body, moderation) if {	# check OpenAI moderation [Ref-3]
-	http_request.method == "POST"
-	http_request.path == "/v1/chat/completions"
-	moderation := openai.moderate(input.parsed_body.messages[_].content)
-}
+# Non-OPTIONS requests need to be validated
+allow := webapp.deny_due_to_app_auth if { # check for valid authentication [Ref-2]
+  not webapp.authenticated(http_request) # see webapp.rego for details
+} else := openai.deny_due_to_missing_api_key if { # check server configuration to avoid confusing error message
+  not openai.api_key_ok # see openai.rego for details
+} else := openai.deny_due_to_moderation(moderation.violations) if {	# check OpenAI moderation [Ref-3]
+  http_request.method == "POST" # only moderate post requests
+  http_request.path == "/v1/chat/completions" # only moderate requests to the completions API
+  moderation := openai.moderate(input.parsed_body.messages[_].content) # see openai.rego for details
+  not moderation.ok
+} else := openai.allow_to_openai # finally allow the request to be forwarded [Ref-4]
