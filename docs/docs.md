@@ -8,7 +8,7 @@ Its recommended you review the OpenAi Proxy call flows diagram as it provides a 
 
 ![Diagram](flow-diagram/flowdiagram.svg)
 
-## Main **Application with TinyMCE [Figure 1.0]**
+## Main **Application with TinyMCE [Component 1]**
 
 The reference application is a simple nodejs server which serves a single page “Message of the Day” application. 
 
@@ -67,7 +67,7 @@ In the code snippet above we connect to ChatGPT via the envoy proxy running on [
 
 It is worth noting that we do not need to provide an API key for ChatGPT because that will be added by the envoy proxy, this serves to hide the ChatGTP API key.
 
-## **Proxy [Figure 2.0]**
+## **Proxy [Component 2]**
 
 Envoy is used to proxy the requests after they are filtered by the Open Policy Agent (OPA).
 
@@ -112,16 +112,13 @@ The `envoy/authz/allow` refers to the package `envoy.authz` and the variable `al
 [`authz.rego`](../config/authz.rego).
 - Lines 5 and 6: Enables logging to the console.
 
-## **Integrator Auth Endpoint [Figure 3.0]**
+## **Integrator Auth Endpoint [Component 3]**
 
 The nodejs server provides a `/authenticated` endpoint which can be used to check if the caller is logged in. This is called by 
 
 …. As this is an example application, this authentication component has been simplified to illustrate the allow and reject states, your final production configuration will need to be tailored to suit your applications production authentication requirements.
 
-## OpenAI Moderation API **[Figure 4.0]**
+## OpenAI Moderation API **[Component 4]**
 
-## **OpenAI Chat Completions API [Figure 5.0]**
+## **OpenAI Chat Completions API [Component  5]**
 
-## The flow Diagram
-
-https://sequencediagram.org/
