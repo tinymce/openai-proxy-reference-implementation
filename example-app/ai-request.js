@@ -21,8 +21,9 @@ function ai_request(request, respondWith) {
           messages: [{ role: 'user', content: request.prompt }],
           stream: true
         }),
-        openWhenHidden: true,
-        signal,
+        openWhenHidden: true, // continue processing while the browser window is hidden
+        signal, // AbortController's AbortSignal
+        // handler for the initial response to properly handle error messages
         async onopen(response) {
           const contentType = response.headers.get('content-type');
           if (response.ok && contentType?.includes('text/event-stream')) {
