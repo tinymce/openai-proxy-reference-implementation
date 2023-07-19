@@ -53,7 +53,7 @@ The application has 2 states:
 
 ### ChatGPT shim
 
-The AI plugin is agnostic to the AI provider allowing you to adapt different AI backends.
+The AI plugin is agnostic to the AI provider, allowing you to adapt different AI backends.
 
 To do this, the integrator has to adapt to the provider API.
 
@@ -93,7 +93,7 @@ async function ai_request(request) {
 
 The above code snippet connects to ChatGPT via the envoy proxy running on [localhost:8080](http://localhost:8080).
 
-**Note:** an API key for ChatGPT is not required here. It wil be added by the envoy proxy. This also serves to hide the ChatGTP API key.
+**Note:** an API key for ChatGPT is not required here. It will be added by the envoy proxy. This also serves to hide the ChatGTP API key.
 
 ## Component 2: the proxy server
 
