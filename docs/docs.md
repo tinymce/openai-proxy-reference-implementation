@@ -80,9 +80,10 @@ via the envoy proxy running on [localhost:8080](http://localhost:8080).
 - [Line 13](../example-app/ai-request.js#L13): Specifies that the stream should
 be started by making a `POST` request so a `body` can be included.
 - [Line 16](../example-app/ai-request.js#L16): Specifies using the `content-type` 
-header that the `body` will contain JSON. Note that the `authorization` header 
-with the OpenAI API key is not added here as it will be added by the envoy 
-proxy. This also serves to hide the API key from end users.
+header that the `body` will contain JSON.  
+**Note**: the `authorization` header with the OpenAI API key is not added here
+as it will be added by the envoy proxy. This also serves to hide the API key
+from end users.
 - [Lines 17 to 23](../example-app/ai-request.js#L17): Configures ChatGPT settings
 including the model used, the creativity, the maximum cost, the question posed
 and that the reply should be streamed.
