@@ -11,3 +11,6 @@
 8. Press the Save button on TinyMCE's toolbar
 9. Press the Logout button
 10. Admire the new message of the day
+
+## Description of components
+See [docs/docs.md](docs/docs.md).
