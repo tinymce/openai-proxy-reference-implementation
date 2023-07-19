@@ -16,7 +16,7 @@ The documentation following describes, in more detail, how to implement these in
 
 ![Diagram](flow-diagram/flowdiagram.svg)
 
-## Component one: the main TinyMCE application
+## Component 1: the main TinyMCE application
 
 The reference application is a NodeJS server which serves a single page *Message of the Day* application. 
 
@@ -226,7 +226,7 @@ not logged.
 - [Line 4]: Stops the `authorization` header being logged from input requests.
 - [Line 5]: Stops the `authorization` header being logged in results.
 
-## **Integrator Auth Endpoint [Component 3]**
+## Component 3: the integrator authentication endpoint
 
 The nodejs server provides an [`/authenticated`](../example-app/index.js#L56) 
 endpoint which can be used to check if the caller is logged in. This is called 
@@ -237,14 +237,14 @@ simplified to illustrate the allow and reject states, your final production
 configuration will need to be tailored to suit your applications production 
 authentication requirements.
 
-## OpenAI Moderation API **[Component 4]**
+## Component 4: OpenAI moderations API
 
 For more information on OpenAI's moderations endpoint please read their guide
 on moderation.
 
 [https://platform.openai.com/docs/guides/moderation](https://platform.openai.com/docs/guides/moderation)
 
-## **OpenAI Chat Completions API [Component  5]**
+## Component 5: OpenAI chat completions API
 
 For more information on OpenAI's Chat completions endpoint please read their
 API docs.
