@@ -239,5 +239,14 @@ authentication requirements.
 
 ## OpenAI Moderation API **[Component 4]**
 
+For more information on OpenAI's moderations endpoint please read their guide
+on moderation.
+
+[https://platform.openai.com/docs/guides/moderation](https://platform.openai.com/docs/guides/moderation)
+
 ## **OpenAI Chat Completions API [Component  5]**
 
+For more information on OpenAI's Chat completions endpoint please read their
+API docs.
+
+[https://platform.openai.com/docs/api-reference/completions/create](https://platform.openai.com/docs/api-reference/completions/create)
