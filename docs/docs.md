@@ -2,36 +2,64 @@
 
 ## Overview
 
-This is a reference implementation showing developers how to integrate their TinyMCE application with the TinyMCE [plugin name].  This is not a production ready application and is to be used for demonstration and training purposes only.
+This is a reference implementation showing how to integrate a TinyMCE application with the TinyMCE [AI Assistant](https://tiny.cloud/docs/tinymce/6/ai/).
 
-Its recommended you review the OpenAi Proxy call flows diagram as it provides a high level overview of the interactions between the required components that enables the OpenAi suggestions feature.  The documentation will describe in more detail how to implement these interactions as a reference towards configuring your own solution.
+It is *not* a production-ready application. It is for demonstration and training purposes only.
+
+## First step
+
+Review the OpenAi Proxy call flows diagram below.
+
+It presents a high level overview of the interactions between the required components that enables the OpenAi suggestions feature.
+
+The documentation following describes, in more detail, how to implement these interactions as a reference towards configuring your own solution.
 
 ![Diagram](flow-diagram/flowdiagram.svg)
 
-## Main **Application with TinyMCE [Component 1]**
+## Component one: the main TinyMCE application
 
-The reference application is a simple nodejs server which serves a single page “Message of the Day” application. 
+The reference application is a NodeJS server which serves a single page *Message of the Day* application. 
 
 The NodeJS server has 6 endpoints:
 
-- [`GET /`](../example-app/index.js#L52) - serves the application page.
+| endpoint                                            | path                         | purpose                                                                                   |
+| --------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------- |
+| [`GET /`](../example-app/index.js#L52)              | ../example-app/index.js#L52  | serves the application page.                                                              |
+| [`GET /ai-request.js`](../example-app/index.js#L53) | ../example-app/index.js#L53  | serves the ChatGPT shim.                                                                  |
+| [`GET /authenticated`](../example-app/index.js#L56) | ../example-app/index.js#L56  | returns 200 for a logged in user and 403 for a logged out (unauthenticated) user.         |
+| [`GET /message`](../example-app/index.js#L59)       | ../example-app/index.js#L59  | serves the current message of the day.                                                    |
+| [`POST /message`](../example-app/index.js#L71)      | ../example-app/index.js#L71  | updates the current message of the day.                                                   |
+| [`POST /login`](../example-app/index.js#L87)        | ../example-app/index.js#L87  | authenticates a username/password and creates a session cookie so the users is logged-in. |
+| [`POST /logout`](../example-app/index.js#L104)      | ../example-app/index.js#L104 | invalidates the session cookie so the user is logged-out
+
+
+<!-- - [`GET /`](../example-app/index.js#L52) - serves the application page.
 - [`GET /ai-request.js`](../example-app/index.js#L53) - serves the ChatGPT shim.
 - [`GET /authenticated`](../example-app/index.js#L56) - returns 200 for a logged in user and 403 for a logged out (unauthenticated) user.
 - [`GET /message`](../example-app/index.js#L59) - serves the current message of the day.
 - [`POST /message`](../example-app/index.js#L71) - updates the current message of the day.
 - [`POST /login`](../example-app/index.js#L87) - authenticates a username/password and creates a session cookie so the users is logged-in.
 - [`POST /logout`](../example-app/index.js#L104) - invalidates the session cookie so the user is logged-out
+-->
 
 The application has 2 states: 
 
-- Logged out - where the message of the day is displayed but can’t be edited, and
-- Logged in - where a TinyMCE editor holds the current message of the day and can be used to edit it. While logged-in it is possible to use the AI plugin to query Chat GPT 3.5.
+1. **Logged out**
+  * the *Message of the day* is displayed but cannot be edited.
+  
+2. **Logged in**
+  * a TinyMCE editor holds the current *Message of the day* and can be used to edit it.
+  * While logged-in it is possible to use the AI plugin to query Chat GPT 3.5.
 
 ### ChatGPT shim
 
-The AI plugin is agnostic to the AI provider allowing you to adapt different AI backends, to do that the integrator has to provide some code to adapt to the provider API. In the case of this example we are using ChatGPT 3.5.
+The AI plugin is agnostic to the AI provider allowing you to adapt different AI backends.
 
-``` javascript
+To do this, the integrator has to adapt to the provider API.
+
+This example uses ChatGPT 3.5.
+
+```javascript
 async function ai_request(request) {
   const resp = await fetch('http://localhost:8080/v1/chat/completions', {
     method: 'POST',
@@ -63,21 +91,29 @@ async function ai_request(request) {
 
 ```
 
-In the code snippet above we connect to ChatGPT via the envoy proxy running on [localhost](http://localhost) port 8080.
+The above code snippet connects to ChatGPT via the envoy proxy running on [localhost:8080](http://localhost:8080).
 
-It is worth noting that we do not need to provide an API key for ChatGPT because that will be added by the envoy proxy, this serves to hide the ChatGTP API key.
+**Note:** an API key for ChatGPT is not required here. It wil be added by the envoy proxy. This also serves to hide the ChatGTP API key.
 
-## **Proxy [Component 2]**
+## Component 2: the proxy server
 
 Envoy is used to proxy the requests after they are filtered by the Open Policy Agent (OPA).
 
-This makes use of the container images [envoyproxy/envoy](https://hub.docker.com/r/envoyproxy/envoy) and [openpolicyagent/opa](https://hub.docker.com/r/openpolicyagent/opa) from Docker Hub.
+This makes use of these two container images from Docker Hub:
 
-These both use configuration files in the `/config/` folder with [`envoy.yaml`](../config/envoy.yaml) configuring the Envoy proxy and [`opa.yaml`](../config/opa.yaml) configuring the Open Policy Agent.
+* [envoyproxy/envoy](https://hub.docker.com/r/envoyproxy/envoy)
+* [openpolicyagent/opa](https://hub.docker.com/r/openpolicyagent/opa).
+
+These both use configuration files in the `/config/` folder.
+
+[`envoy.yaml`](../config/envoy.yaml) configures the Envoy proxy
+
+[`opa.yaml`](../config/opa.yaml) configures the Open Policy Agent.
 
 The Open Policy Agent also makes use of the Rego files to script the process of authenticating and moderating the requests to be sent to OpenAI.
 
 ### envoy.yaml
+
 The [`envoy.yaml`](../config/envoy.yaml) file is heavily commented but here is an overview.
 
 - Lines 1 to 5: Sets the port where the admin page is hosted. The admin page is useful
@@ -114,7 +150,7 @@ The `envoy/authz/allow` refers to the package `envoy.authz` and the variable `al
 
 ## **Integrator Auth Endpoint [Component 3]**
 
-The nodejs server provides a `/authenticated` endpoint which can be used to check if the caller is logged in. This is called by 
+The nodejs server provides an `/authenticated` endpoint which can be used to check if the caller is logged in. This is called by 
 
 …. As this is an example application, this authentication component has been simplified to illustrate the allow and reject states, your final production configuration will need to be tailored to suit your applications production authentication requirements.
 
