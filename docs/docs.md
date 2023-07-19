@@ -71,7 +71,7 @@ we are using `respondWith.stream` so we can get access to streaming related valu
 - [Line 6](../example-app/ai-request.js#L6): The `stream` option gives us access to
 `signal` which is an [AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal)
 and `streamMessage` which is a simple callback that takes a string to be added on
-to the existing stream.
+to the existing content.
 - [Lines 8 to 10](../example-app/ai-request.js#L8): Get the FetchEventSource module
 and immedately call it.
 - [Line 11](../example-app/ai-request.js#L11): Specifies the proxy URL that we
@@ -85,7 +85,7 @@ header that the `body` will contain JSON.
 as it will be added by the envoy proxy. This also serves to hide the API key
 from end users.
 - [Lines 17 to 23](../example-app/ai-request.js#L17): Configures ChatGPT settings
-including the model used, the creativity, the maximum cost, the question posed
+including the model used, the creativity, the maximum output length, the question posed
 and that the reply should be streamed.
 - [Line 24](../example-app/ai-request.js#L24): Ensures that the request will
 not be canceled if the user switches away from the browser window.
@@ -247,7 +247,7 @@ on moderation.
 
 ## Component 5: OpenAI chat completions API
 
-For more information on OpenAI's Chat completions endpoint please read their
+For more information on OpenAI's chat completions endpoint please read their
 API docs.
 
 [https://platform.openai.com/docs/api-reference/completions/create](https://platform.openai.com/docs/api-reference/completions/create)
