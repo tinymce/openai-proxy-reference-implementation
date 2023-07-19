@@ -16,8 +16,8 @@ function ai_request(request, respondWith) {
         headers: { 'Content-Type': 'application/json', },
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
-          temperature: 0.7,
-          max_tokens: 800,
+          temperature: 0.7, // controls the creativity, 0.7 is considered good for creative (non-factual) writing
+          max_tokens: 800, // the maximum "cost" allowed for this API call
           messages: [{ role: 'user', content: request.prompt }],
           stream: true
         }),
