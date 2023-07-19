@@ -46,6 +46,8 @@ The application has 2 states:
 
 1. **Logged out**
   * the *Message of the day* is displayed but cannot be edited.
+  * a user can login with the hardcoded credentials `admin`/`admin`  
+  **Important**: this is a demonstration only, care must be taken to handle credentials properly in a production application.
   
 2. **Logged in**
   * a TinyMCE editor holds the current *Message of the day* and can be used to edit it.
