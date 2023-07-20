@@ -1,0 +1,65 @@
+version: "3.8"
+services:
+  envoy:
+    image: docker.io/envoyproxy/envoy:v1.26-latest
+    command:
+      - envoy
+      - "--log-level"
+      - warn
+      - "--config-path"
+      - /config/envoy.yaml
+    deploy:
+      replicas: 1
+    configs:
+      - source: envoy_config
+        target: /config/envoy.yaml
+        mode: 0444
+    ports:
+      - 8080:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+  opa:
+    image: docker.io/openpolicyagent/opa:0.54.0-envoy-static
+    user: "1111:1111"
+    command:
+      - run
+      - "--log-level=error"
+      - "--server"
+      - "--config-file=/config/opa.yaml"
+      - "--addr=localhost:8181"
+      - "--diagnostic-addr=localhost:8282"
+      - /policy/
+    environment:
+      - OPENAI_API_KEY
+    deploy:
+      replicas: 1
+    expose:
+      - 9191/tcp
+    configs:
+      - source: opa_config
+        target: /config/opa.yaml
+        mode: 0444
+      - source: opa_policies
+        target: /policy/
+        mode: 0444
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8282/health?plugins"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+  example-app:
+    build: ./example-app
+    ports:
+      - 3000:3000
+configs:
+  envoy_config:
+    file: ./config/envoy.yaml
+  opa_config:
+    file: ./config/opa.yaml
+  opa_policies:
+    file: ./config
