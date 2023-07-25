@@ -65,7 +65,7 @@ app.get('/jsonwebtoken', (req, res) => {
       if (err) { // encoding JWT failed, for example if the secret is empty
         res.status(500).send();
       } else { // reply with JWT
-        res.contentType('text/plain').send(encoded);
+        res.contentType('application/jwt').send(encoded);
       }
     });
   } else { // not currently authenticated
@@ -80,7 +80,7 @@ app.get('/message', (_req, res) => {
       console.error(err);
       res.status(500).contentType('text/plain').send('Unable to read message.html file');
     } else {
-      res.contentType('text/plain').send(message);
+      res.contentType('text/html').send(message);
     }
   });
 });
