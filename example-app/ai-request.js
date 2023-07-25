@@ -6,14 +6,19 @@ function ai_request(request, respondWith) {
   respondWith.stream(async (signal, streamMessage) => {
     // module to fetch the event stream from ChatGPT 3.5
     const { fetchEventSource } = await fetchEventSourceModule;
+    // get a token to provide authorization
+    const jwtReq = await fetch('/jsonwebtoken');
+    if (!jwtReq.ok) throw new Error('Not authenticated');
+    const jwt = await jwtReq.text();
     // fetch an event stream from ChatGPT via the Envoy proxy [Ref-1]
     return fetchEventSource(
       'http://localhost:8080/v1/chat/completions',
       {
         method: 'POST',
         // the authorization header containing the OpenAI API key is added by
-        // the proxy so it does not need to be included in the client code
-        headers: { 'Content-Type': 'application/json', },
+        // the proxy so it does not need to be included in the client code.
+        // instead a JWT from the client is included to authorize with the proxy.
+        headers: { 'Content-Type': 'application/json', authorization: `Bearer ${jwt}` },
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
           temperature: 0.7, // controls the creativity, 0.7 is considered good for creative (non-factual) writing
