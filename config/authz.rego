@@ -14,7 +14,7 @@ allow := { "allowed": true } if {
 
 # Non-OPTIONS requests need to be validated
 allow := webapp.deny_due_to_app_auth if { # check for valid authentication [Ref-2]
-  not webapp.authenticated(http_request) # see webapp.rego for details
+  not webapp.authorized(http_request) # see webapp.rego for details
 } else := openai.deny_due_to_missing_api_key if { # check server configuration to avoid confusing error message
   not openai.api_key_ok # see openai.rego for details
 } else := openai.deny_due_to_moderation(moderation.violations) if {	# check OpenAI moderation [Ref-3]

@@ -4,12 +4,12 @@ const fetchEventSourceModule = import("https://unpkg.com/@microsoft/fetch-event-
 
 function ai_request(request, respondWith) {
   respondWith.stream(async (signal, streamMessage) => {
-    // module to fetch the event stream from ChatGPT 3.5
-    const { fetchEventSource } = await fetchEventSourceModule;
     // get a token to provide authorization
     const jwtReq = await fetch('/jsonwebtoken');
     if (!jwtReq.ok) throw new Error('Not authenticated');
     const jwt = await jwtReq.text();
+    // module to fetch the event stream from ChatGPT 3.5
+    const { fetchEventSource } = await fetchEventSourceModule;
     // fetch an event stream from ChatGPT via the Envoy proxy [Ref-1]
     return fetchEventSource(
       'http://localhost:8080/v1/chat/completions',

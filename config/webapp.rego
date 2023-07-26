@@ -14,7 +14,7 @@ deny_due_to_app_auth := { # [Ref-1.2]
 }
 
 # This function checks if the calling request is authenticated.
-authenticated(http_request) {
+authorized(http_request) {
   # get the authorization header or default to empty string if it is missing
   authorization := object.get(http_request.headers, "authorization", "")
   # check that it contains a bearer token as we expect
