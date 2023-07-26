@@ -33,6 +33,7 @@ static_resources:
                           route:
                             cluster: openai # the cluster is defined at the bottom of this file
                             host_rewrite_literal: "api.openai.com" # when we forward we don't want the host header to be localhost
+                            timeout: 300s # streaming responses can take a while
                       typed_per_filter_config:
                         envoy.filters.http.cors: # Rules for applying CORS headers (applied in http_filters below)
                           "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.CorsPolicy
