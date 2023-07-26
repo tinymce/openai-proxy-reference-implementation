@@ -64,7 +64,7 @@ This example uses ChatGPT 3.5.
 | [Lines 12 to 14](../example-app/ai-request.js#L12)  | Get the FetchEventSource module and immedately call it. |
 | [Line 15](../example-app/ai-request.js#L15)        | Specifies the proxy URL used to proxy all OpenAI requests. The example code connects to ChatGPT via the envoy proxy running on [localhost:8080](http://localhost:8080). |
 | [Line 17](../example-app/ai-request.js#L17)        | Specifies that the stream should be started by making a `POST` request so a `body` can be included. |
-| [Line 21](../example-app/ai-request.js#L21)        | Specifies using the `content-type` header that the `body` will contain JSON and includes the JWT to authorize the request with envoy.  <br/>**Note**: the `authorization` header does not include the OpenAI API key. This `authorization` header will be replaced by the envoy proxy to use the OpenAI API key before it is forwarded to OpenAI. This allows it to be hidden from end users. |
+| [Line 21](../example-app/ai-request.js#L21)        | Specifies, using the `content-type` header, that the `body` will contain JSON and includes the JWT to authorize the request with envoy.  <br/>**Note**: the `authorization` header does not include the OpenAI API key. This `authorization` header will be replaced by the envoy proxy to use the OpenAI API key before it is forwarded to OpenAI. This allows it to be hidden from end users. |
 | [Lines 22 to 28](../example-app/ai-request.js#L22) | Configures ChatGPT settings, including: the model used; the creativity; the maximum output length; the question posed: and that the reply should be streamed. |
 | [Line 29](../example-app/ai-request.js#L29)        | Ensures the request is not canceled if the user switches away from the browser window. |
 | [Line 30](../example-app/ai-request.js#L30)        | Sets the AbortSignal so TinyMCE can signal to the FetchEventSource call that it should be canceled if the user closes the AI window early. |
@@ -139,7 +139,7 @@ if the client is authenticated along with the reply that is sent when authentica
 
 | line(s)                                     | purpose                                                                                          |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [Line 6](../config/webapp.rego#L6)   | Reads the environment variable `EXAMPLE_APP_JWT_SECRET` into a variable with the default value `"Default JWT secret"`. The same default is used on the example app for ease of configuration but in a production quality application this should always be set from the environment variable. |
+| [Line 6](../config/webapp.rego#L6)   | Reads the environment variable, `EXAMPLE_APP_JWT_SECRET`, into a variable with the default value `"Default JWT secret"`. The same default is used on the example app for ease of configuration. In a production quality application, however, this should always be set from the environment variable. |
 | [Lines 9 to 14](../config/webapp.rego#L9)   | Defines the error message sent if request authentication fails. |
 | [Lines 17 to 34](../config/webapp.rego#L17) | Checks to see if the request contained a valid JSON Web Token which authorizes the user to use the OpenAI chat completions API. This makes use of a secret shared between the example app and the proxy to check that the JWT is valid. |
 
@@ -171,22 +171,22 @@ The [`config/log.rego`](../config/log.rego) file ensures that sensitive informat
 
 ## Component 3: the integrator authentication endpoint
 
-The nodejs server provides an [`/jsonwebtoken`](../example-app/index.js#L57) endpoint which can be used to generate a signed JSON Web Token authorizing the request.
+The nodejs server provides a [`/jsonwebtoken`](../example-app/index.js#L57) endpoint which can be used to generate a signed JSON Web Token authorizing the request.
 
 This is called by the example-app and then included in the `authorization` header
 with the request to the envoy proxy.
 
 The envoy proxy then [validates this JWT](../config/webapp.rego#L25) as part of
-the request processing to ensure that the caller is authorized before forwarding
+the request processing. This ensures the caller is authorized before forwarding
 the request to OpenAI.
 
-This could also be implemented by passing the session cookie to the proxy and
+Alternatively, implement this by passing the session cookie to the proxy and
 having the proxy call the `/authenticated` endpoint.
 
-In this example application, this authentication component has been simplified 
-to illustrate the allow and reject states, for example a dummy database with
-hardcoded credentials is used instead of a real database and the JWT is signed
-with a shared secret rather than a public/private certificate pair.
+In this example application, the authentication component has been simplified to
+illustrate the allow and reject states. For example, a dummy database with
+hardcoded credentials is used instead of a real database. As well, the JWT is
+signed with a shared secret rather than a public/private certificate pair.
 
 A production configuration must be tailored to the application’s production authentication requirements.
 
