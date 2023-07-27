@@ -4,7 +4,7 @@ import future.keywords
 
 # This error message is displayed when the /authenticated endpoint does
 # not return 200 OK.
-deny_due_to_app_auth := { # [Ref-1.2]
+deny_due_to_app_auth := { # [Ref-1.2a]
   "allowed": false,
   "body": "Not authenticated to application",
   "response_headers_to_add": {"content-type": "text/plain"},
