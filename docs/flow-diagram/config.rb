@@ -24,7 +24,7 @@ App<-AppServer: Authorization token response [Ref-1.1]
 note over App: Attach authorization token to request [Ref-2]
 App->Proxy: Chat completion request [Ref-3]
 note over Proxy: Verify Authorization [Ref-4a] [Ref-4b]
-App<--Proxy: 403 Forbidden (failed authentication) [Ref-3.2a] [Ref-3.2b]
+App<--Proxy: 403 Forbidden (failed authorization) [Ref-3.2a] [Ref-3.2b]
 end
 
 alt moderation failure call flow
