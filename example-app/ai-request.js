@@ -4,13 +4,13 @@ const fetchEventSourceModule = import("https://unpkg.com/@microsoft/fetch-event-
 
 function ai_request(request, respondWith) {
   respondWith.stream(async (signal, streamMessage) => {
-    // get a token to provide authorization
+    // get a token to provide authorization [Ref-1]
     const jwtReq = await fetch('/jsonwebtoken');
     if (!jwtReq.ok) throw new Error('Not authenticated');
     const jwt = await jwtReq.text();
     // module to fetch the event stream from ChatGPT 3.5
     const { fetchEventSource } = await fetchEventSourceModule;
-    // fetch an event stream from ChatGPT via the Envoy proxy [Ref-1]
+    // fetch an event stream from ChatGPT via the Envoy proxy [Ref-3]
     return fetchEventSource(
       'http://localhost:8080/v1/chat/completions',
       {
@@ -18,7 +18,7 @@ function ai_request(request, respondWith) {
         // the authorization header containing the OpenAI API key is added by
         // the proxy so it does not need to be included in the client code.
         // instead a JWT from the client is included to authorize with the proxy.
-        headers: { 'Content-Type': 'application/json', authorization: `Bearer ${jwt}` },
+        headers: { 'Content-Type': 'application/json', authorization: `Bearer ${jwt}` }, // [Ref-2]
         body: JSON.stringify({
           model: 'gpt-3.5-turbo',
           temperature: 0.7, // controls the creativity, 0.7 is considered good for creative (non-factual) writing
@@ -33,13 +33,13 @@ function ai_request(request, respondWith) {
           const contentType = response.headers.get('content-type');
           if (response.ok && contentType?.includes('text/event-stream')) {
             return; // everything's good
-          } else if (contentType?.includes('application/json')) { // [Ref-1.2] [Ref-1.3]
+          } else if (contentType?.includes('application/json')) { // [Ref-3.2b] [Ref-3.3]
             throw new Error((await response.json())?.error?.message); // openai returns json on error
           } else {
             throw new Error(await response.text()); // OPA returns plain text
           }
         },
-        // handler for messages received from ChatGPT 3.5 [Ref-1.1]
+        // handler for messages received from ChatGPT 3.5 [Ref-3.1]
         onmessage({ data }) {
           if (data !== '[DONE]') {
             const message = JSON.parse(data)?.choices[0]?.delta?.content;

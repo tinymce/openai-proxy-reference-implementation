@@ -6,7 +6,7 @@ import future.keywords
 jwt_secret := object.get(opa.runtime().env, "EXAMPLE_APP_JWT_SECRET", "Default JWT secret")
 
 # This error message is displayed when the the request does not contain authentication
-deny_due_to_app_auth := { # [Ref-1.2]
+deny_due_to_app_auth := { # [Ref-3.2a]
   "allowed": false,
   "body": "Not authenticated to application",
   "response_headers_to_add": {"content-type": "text/plain"},
@@ -22,7 +22,7 @@ authorized(http_request) {
   # extract the suspected JWT
   token := substring(authorization, 7, -1)
   # decode and validate the suspected JWT
-  [isValid, header, payload] := io.jwt.decode_verify(token, {
+  [isValid, header, payload] := io.jwt.decode_verify(token, { # [Ref-4b]
     "secret": jwt_secret,
     "alg": "HS256",
     "aud": "openai-proxy-reference"

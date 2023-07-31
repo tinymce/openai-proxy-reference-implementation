@@ -13,7 +13,7 @@ openai_auth_header := concat(" ", ["Bearer", openai_api_key]) if {
   api_key_ok
 } else := "Bearer unknown" # fallback in case API key is not provided
 
-# This response will allow the request to be forwarded to OpenAI for processing.
+# This response will allow the request to be forwarded to OpenAI for processing. [Ref-6]
 allow_to_openai := {
   "allowed": true,
   "headers": {"authorization": openai_auth_header},
@@ -51,7 +51,7 @@ moderate(inputs) := outcome if {
 
   # Request a moderation from OpenAI to see if the input contains content
   # that violates their policies and would be rejected.
-  moderation_response := http.send({ # [Ref-3]
+  moderation_response := http.send({ # [Ref-5]
     "method": "POST",
     "url": "https://api.openai.com/v1/moderations",
     "headers": {"authorization": openai_auth_header},
@@ -94,7 +94,7 @@ moderate(inputs) := outcome if {
   print("Received moderation response", moderation_response)
 
   # extract out the results array
-  moderation_results := moderation_response.body.results # [Ref-3.1] [Ref-3.2]
+  moderation_results := moderation_response.body.results # [Ref-5.1] [Ref-5.2]
 
   # check that the `flagged` property is false for all of the result array entries.
   ok := all({ok |

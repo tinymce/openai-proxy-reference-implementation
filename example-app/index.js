@@ -53,7 +53,7 @@ app.get('/ai-request.js', (_req, res) => res.sendFile(path.join(__dirname, 'ai-r
 // endpoint to check if the request contains an authenticated session
 app.get('/authenticated', (req, res) => res.status(req.session.user ? 200 : 403).send());
 
-// endpoint to produce a JWT for authenticating with the proxy
+// endpoint to produce a JWT for authenticating with the proxy [Ref-1.1]
 app.get('/jsonwebtoken', (req, res) => {
   if (req.session.user) {
     const secret = process.env.EXAMPLE_APP_JWT_SECRET ?? "Default JWT secret"; // authentication with the proxy uses a shared secret

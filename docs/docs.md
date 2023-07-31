@@ -114,8 +114,7 @@ The [`config/opa.yaml`](../config/opa.yaml) file defines what the open policy ag
 
 | line(s)                                | purpose                         |
 | -------------------------------------- | ------------------------------- |
-| [Lines 1 to 4](../config/opa.yaml#L1)  | Sets the port (9191) and path (`envoy/authz/allow`) for the remote procedure call. The `envoy/authz/allow` refers to the package `envoy.authz` and the variable `allow` defined in the file |
-| [`authz.rego`](../config/authz.rego)   |                                 |
+| [Lines 1 to 4](../config/opa.yaml#L1)  | Sets the port (9191) and path (`envoy/authz/allow`) for the remote procedure call. The `envoy/authz/allow` refers to the package `envoy.authz` and the variable `allow` defined in the file [`authz.rego`](../config/authz.rego) |
 | [Lines 5 and 6](../config/opa.yaml#L5) | Enables logging to the console. |
 
 ### authz.rego
