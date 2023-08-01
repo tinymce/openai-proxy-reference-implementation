@@ -1,34 +1,39 @@
 title OpenAI proxy call flows diagram
 
-participant "Main Application with TinyMCE\nComponent 1" as TinyMCE
+participant "Main Application with TinyMCE\nComponent 1" as App
 participant "Proxy\nComponent 2" as Proxy
-participant "Integrator Auth Endpoint\nComponent 3" as Integrator Auth Endpoint
-participant "OpenAI Moderation API\nComponent 4" as OpenAI Moderation API
-participant "OpenAI Chat Completions API\nComponent 5" as OpenAI Chat Completions API
+participant "Integrator Auth Endpoint\nComponent 3" as AppServer
+participant "OpenAI Moderation API\nComponent 4" as ModerationAPI
+participant "OpenAI Chat Completions API\nComponent 5" as ChatCompletionsAPI
 
-
-TinyMCE->Proxy: Chat completion request <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/ai-request.js#L9>[Ref-1]</link>
-Proxy->Integrator Auth Endpoint: Allow this chat completion request? <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/authz.rego#L16>[Ref-2]</link>
-Proxy<--Integrator Auth Endpoint: 200 OK (Allow this request) <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/index.js#L55>[Ref-2.1]</link>
-Proxy->OpenAI Moderation API: Does this request pass the moderation standards? <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/authz.rego#L20>[Ref-3]</link>
-Proxy<--OpenAI Moderation API: No moderation flags - request would be accepted <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/openai.rego#L97>[Ref-3.1]</link>
-note over Proxy: Attach OpenAI API token to request
-Proxy->OpenAI Chat Completions API: Chat completion request <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/authz.rego#L25>[Ref-4]</link>
-Proxy<--OpenAI Chat Completions API: Chat completion response [Ref-4.1]
-TinyMCE<--Proxy: Chat completion response <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/ai-request.js#L37>[Ref-1.1]</link>
+App->AppServer: Authorization token request [Ref-1]
+App<-AppServer: Authorization token response [Ref-1.1]
+note over App: Attach authorization token to request [Ref-2]
+App->Proxy: Chat completion request [Ref-3]
+note over Proxy: Verify Authorization [Ref-4a] [Ref-4b]
+Proxy->ModerationAPI: Does this request pass the moderation standards? [Ref-5]
+Proxy<--ModerationAPI: No moderation flags - request would be accepted [Ref-5.1]
+note over Proxy: Attach OpenAI API token to request [Ref-6]
+Proxy->ChatCompletionsAPI: Chat completion request [Ref-7]
+Proxy<--ChatCompletionsAPI: Chat completion response
+App<--Proxy: Chat completion response [Ref-3.1]
 
 alt auth failure call flow
-TinyMCE->Proxy: Chat completion request <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/ai-request.js#L9>[Ref-1]</link>
-Proxy->Integrator Auth Endpoint: Allow this chat completion request? <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/authz.rego#L16>[Ref-2]</link>
-Proxy<--Integrator Auth Endpoint: 403 OK (Deny this request) <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/index.js#L55>[Ref-2.2]</link>
-TinyMCE<--Proxy: 403 Forbidden (failed authentication) <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/webapp.rego#L7>[Ref-1.2a]</link> <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/ai-request.js#L31>[Ref-1.2b]</link>
+App->AppServer: Authorization token request [Ref-1]
+App<-AppServer: Authorization token response [Ref-1.1]
+note over App: Attach authorization token to request [Ref-2]
+App->Proxy: Chat completion request [Ref-3]
+note over Proxy: Verify Authorization [Ref-4a] [Ref-4b]
+App<--Proxy: 403 Forbidden (failed authorization) [Ref-3.2a] [Ref-3.2b]
 end
 
 alt moderation failure call flow
-TinyMCE->Proxy: Chat completion request <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/ai-request.js#L9>[Ref-1]</link>
-Proxy->Integrator Auth Endpoint: Allow this chat completion request? <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/authz.rego#L16>[Ref-2]</link>
-Proxy<--Integrator Auth Endpoint: 200 OK (Allow this request) <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/index.js#L55>[Ref-2.1]</link>
-Proxy->OpenAI Moderation API: Does this request pass the moderation standards? <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/authz.rego#L20>[Ref-3]</link>
-Proxy<--OpenAI Moderation API: Moderation flags triggered <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/config/openai.rego#L97>[Ref-3.2]</link>
-TinyMCE<--Proxy: 400 Bad Request (failed moderation) <link:https://github.com/tinymce/openai-proxy-reference-implementation/blob/main/example-app/ai-request.js#L31>[Ref-1.3]</link>
+App->AppServer: Authorization token request [Ref-1]
+App<-AppServer: Authorization token response [Ref-1.1]
+note over App: Attach authorization token to request [Ref-2]
+App->Proxy: Chat completion request [Ref-3]
+note over Proxy: Verify Authorization [Ref-4a] [Ref-4b]
+Proxy->ModerationAPI: Does this request pass the moderation standards? [Ref-5]
+Proxy<--ModerationAPI: Moderation flags triggered [Ref-5.2]
+App<--Proxy: 400 Bad Request (failed moderation) [Ref-3.3]
 end

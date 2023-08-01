@@ -6,4 +6,6 @@ WORKDIR /app
 
 RUN npm install
 
+ENV EXAMPLE_APP_JWT_SECRET="Default JWT secret"
+
 ENTRYPOINT [ "node", "index.js" ]

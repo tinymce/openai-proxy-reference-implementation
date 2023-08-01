@@ -1,6 +1,7 @@
 const express = require('express');
 const expressSession = require('express-session');
 const fs = require('fs');
+const jsonwebtoken = require('jsonwebtoken');
 const path = require('path');
 const pbkdf2PasswordHasher = require('pbkdf2-password')();
 
@@ -43,17 +44,34 @@ app.use(expressSession({
   resave: false,
   saveUninitialized: false,
   secret: 'REPLACE THIS SECRET WITH YOUR OWN!', // secret to encrypt session cookies
-  cookie: {
-    sameSite: 'lax' // needed because otherwise the different port means the cookie won't be forwarded to OPA
-  }
 }));
 
 // endpoint to serve the single page app
 app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 app.get('/ai-request.js', (_req, res) => res.sendFile(path.join(__dirname, 'ai-request.js')));
 
-// endpoint to check if the request contains an authenticated session [Ref-2.1] [Ref-2.2]
+// endpoint to check if the request contains an authenticated session
 app.get('/authenticated', (req, res) => res.status(req.session.user ? 200 : 403).send());
+
+// endpoint to produce a JWT for authenticating with the proxy [Ref-1.1]
+app.get('/jsonwebtoken', (req, res) => {
+  if (req.session.user) {
+    const secret = process.env.EXAMPLE_APP_JWT_SECRET ?? "Default JWT secret"; // authentication with the proxy uses a shared secret
+    jsonwebtoken.sign({
+      sub: req.session.user.username, // sub[ject]
+      aud: ['openai-proxy-reference'], // aud[ience] must be an array for OPA to accept
+      allow_openai_chat_completions: true, // a claim for the proxy to verify
+    }, secret, { expiresIn: '2m', algorithm: 'HS256' }, (err, encoded) => {
+      if (err) { // encoding JWT failed, for example if the secret is empty
+        res.status(500).send();
+      } else { // reply with JWT
+        res.contentType('application/jwt').send(encoded);
+      }
+    });
+  } else { // not currently authenticated
+    res.status(403).send();
+  }
+})
 
 // endpoint to get the current message of the day from the message.html file
 app.get('/message', (_req, res) => {
@@ -62,7 +80,7 @@ app.get('/message', (_req, res) => {
       console.error(err);
       res.status(500).contentType('text/plain').send('Unable to read message.html file');
     } else {
-      res.contentType('text/plain').send(message);
+      res.contentType('text/html').send(message);
     }
   });
 });

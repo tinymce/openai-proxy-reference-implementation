@@ -24,13 +24,14 @@ The NodeJS server has 6 endpoints:
 
 | endpoint                                            | path                         | purpose                                                                                   |
 | --------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------- |
-| [`GET /`](../example-app/index.js#L52)              | ../example-app/index.js#L52  | serves the application page.                                                              |
-| [`GET /ai-request.js`](../example-app/index.js#L53) | ../example-app/index.js#L53  | serves the ChatGPT shim.                                                                  |
-| [`GET /authenticated`](../example-app/index.js#L56) | ../example-app/index.js#L56  | returns 200 for a logged in user and 403 for a logged out (unauthenticated) user.         |
-| [`GET /message`](../example-app/index.js#L59)       | ../example-app/index.js#L59  | serves the current message of the day.                                                    |
-| [`POST /message`](../example-app/index.js#L71)      | ../example-app/index.js#L71  | updates the current message of the day.                                                   |
-| [`POST /login`](../example-app/index.js#L87)        | ../example-app/index.js#L87  | authenticates a username/password and creates a session cookie so the users is logged-in. |
-| [`POST /logout`](../example-app/index.js#L104)      | ../example-app/index.js#L104 | invalidates the session cookie so the user is logged-out
+| [`GET /`](../example-app/index.js#L50)              | ../example-app/index.js#L50  | Serves the application page.                                                              |
+| [`GET /ai-request.js`](../example-app/index.js#L51) | ../example-app/index.js#L51  | Serves the ChatGPT shim.                                                                  |
+| [`GET /authenticated`](../example-app/index.js#L54) | ../example-app/index.js#L54  | Returns 200 for a logged in user and 403 for a logged out (unauthenticated) user.         |
+| [`GET /jsonwebtoken`](../example-app/index.js#L57) | ../example-app/index.js#L57  | Serves a JSON Web Token containing the authorized capabilties of the authenticated user. This makes use of a secret shared between the example-app and the proxy, stored in the environment variable `EXAMPLE_APP_JWT_SECRET`, to sign the JWT.         |
+| [`GET /message`](../example-app/index.js#L77)       | ../example-app/index.js#L77  | Serves the current message of the day.                                                    |
+| [`POST /message`](../example-app/index.js#L89)      | ../example-app/index.js#L89  | Updates the current message of the day.                                                   |
+| [`POST /login`](../example-app/index.js#L105)        | ../example-app/index.js#L105  | authenticates a username/password and creates a session cookie so the users is logged-in. |
+| [`POST /logout`](../example-app/index.js#L122)      | ../example-app/index.js#L122 | Invalidates the session cookie so the user is logged-out.
 
 
 The application has 2 states: 
@@ -59,16 +60,17 @@ This example uses ChatGPT 3.5.
 | [Line 3](../example-app/ai-request.js#L3)          | Loads the FetchEventSource library. This works around the 2,000 character limitation of the browser’s built-in EventSource API. |
 | [Line 5](../example-app/ai-request.js#L5)          | The generic interface TinyMCE provides. The `request` parameter includes the text of the request in `request.prompt`. The `respondWith` parameter provides adapters to different situations. In this case `respondWith.stream` is used to get access to streaming-related values. |
 | [Line 6](../example-app/ai-request.js#L6)          | The `stream` option gives us access to `signal` which is an [AbortSignal](https://developer.mozilla.org/en-US/docs/Web/API/AbortSignal) and `streamMessage` which is a simple callback that takes a string to be added on to the existing content. |
-| [Lines 8 to 10](../example-app/ai-request.js#L8)   | Get the FetchEventSource module and immedately call it. |
-| [Line 11](../example-app/ai-request.js#L11)        | Specifies the proxy URL used to proxy all OpenAI requests. The example code connects to ChatGPT via the envoy proxy running on [localhost:8080](http://localhost:8080). |
-| [Line 13](../example-app/ai-request.js#L13)        | Specifies that the stream should be started by making a `POST` request so a `body` can be included. |
-| [Line 16](../example-app/ai-request.js#L16)        | Specifies using the `content-type` header that the `body` will contain JSON. **Note**: the `authorization` header with the OpenAI API key is not added here as it will be added by the envoy proxy. This also serves to hide the API key from end users. |
-| [Lines 17 to 23](../example-app/ai-request.js#L17) | Configures ChatGPT settings, including: the model used; the creativity; the maximum output length; the question posed: and that the reply should be streamed. |
-| [Line 24](../example-app/ai-request.js#L24)        | Ensures the request is not canceled if the user switches away from the browser window. |
-| [Line 25](../example-app/ai-request.js#L25)        | Sets the AbortSignal so TinyMCE can signal to the FetchEventSource call that it should be canceled if the user closes the AI window early. |
-| [Lines 27 to 36](../example-app/ai-request.js#L27) | Specifies how to handle the initial connection response. By default, the FetchEventStream will report a generic error if the response type is not `text/event-stream`. OpenAI uses JSON to communicate error messages; so this method is needed to extract error messages so they can be provided to the end user. |
-| [Lines 38 to 45](../example-app/ai-request.js#L38) | Converts the JSON messages from OpenAI into the `streamMessage` calls that take the content string. |
-| [Lines 47 to 49](../example-app/ai-request.js#L47) | Rethrows any errors to abort processing. |
+| [Lines 8 to 10](../example-app/ai-request.js#L8)   | Request a JSON Web Token that can prove to the proxy server that the user is authorised to make AI requests. |
+| [Lines 12 to 14](../example-app/ai-request.js#L12)  | Get the FetchEventSource module and immedately call it. |
+| [Line 15](../example-app/ai-request.js#L15)        | Specifies the proxy URL used to proxy all OpenAI requests. The example code connects to ChatGPT via the envoy proxy running on [localhost:8080](http://localhost:8080). |
+| [Line 17](../example-app/ai-request.js#L17)        | Specifies that the stream should be started by making a `POST` request so a `body` can be included. |
+| [Line 21](../example-app/ai-request.js#L21)        | Specifies, using the `content-type` header, that the `body` will contain JSON and includes the JWT to authorize the request with envoy.  <br/>**Note**: the `authorization` header does not include the OpenAI API key. This `authorization` header will be replaced by the envoy proxy to use the OpenAI API key before it is forwarded to OpenAI. This allows it to be hidden from end users. |
+| [Lines 22 to 28](../example-app/ai-request.js#L22) | Configures ChatGPT settings, including: the model used; the creativity; the maximum output length; the question posed: and that the reply should be streamed. |
+| [Line 29](../example-app/ai-request.js#L29)        | Ensures the request is not canceled if the user switches away from the browser window. |
+| [Line 30](../example-app/ai-request.js#L30)        | Sets the AbortSignal so TinyMCE can signal to the FetchEventSource call that it should be canceled if the user closes the AI window early. |
+| [Lines 32 to 41](../example-app/ai-request.js#L32) | Specifies how to handle the initial connection response. By default, the FetchEventStream will report a generic error if the response type is not `text/event-stream`. OpenAI uses JSON to communicate error messages; so this method is needed to extract error messages so they can be provided to the end user. |
+| [Lines 43 to 50](../example-app/ai-request.js#L43) | Converts the JSON messages from OpenAI into the `streamMessage` calls that take the content string. |
+| [Lines 52 to 54](../example-app/ai-request.js#L52) | Rethrows any errors to abort processing. |
 
 ## Component 2: the proxy server
 
@@ -95,15 +97,15 @@ The [`config/envoy.yaml`](../config/envoy.yaml) file is heavily commented but he
 | [Lines 1 to 5](../config/envoy.yaml#L1)       | Sets the port where the admin page is hosted. The admin page is useful for debugging problems but it is strongly recommended that it not be made accessible remotely as it makes available serveral destructive operations. |
 | [Lines 8 to 16](../config/envoy.yaml#L8)      | Configures the proxy server to listen to connection requests on port 8080. This is repeated for both IPv4 and IPv6 so that it will listen to connection attempts from both. |
 | [Lines 28 to 29](../config/envoy.yaml#L28)    | Says that the proxy is not serving as multiple hosts but rather treats all incomming as to a single host.                                                                   |
-| [Lines 31 to 35](../config/envoy.yaml#L31)    | Tells the proxy to send everything that passes the filters and that goes to the path /v1/ to the OpenAI cluster (defined later) on behalf of the client.                    |
-| [Lines 37 to 50](../config/envoy.yaml#L37)    | Tells the proxy how to add CORS headers though it won't actually do the addition of the headers until the related filter.                                                   |
-| [Lines 52 to 62](../config/envoy.yaml#L52)    | Filters out requests to the health check "/ping" and handles it without passing the request onwards.                                                                        |
-| [Lines 63 to 72](../config/envoy.yaml#L63)    | Stores the path of the request in a lookup for a later filter.                                                                                                              |
-| [Lines 73 to 75](../config/envoy.yaml#L73)    | Adds the CORS headers using the previously defined rules (Lines 37 to 50).                                                                                                  |
-| [Lines 76 to 97](../config/envoy.yaml#L76)    | Runs the Open Policy Agent when the path matches /v1/ and filters the requests based on running the rego scripts which are specified in opa.yaml.                           |
-| [Lines 98 to 100](../config/envoy.yaml#L98)   | Runs the HTTP router which is required.                                                                                                                                     |
-| [Lines 102 to 115](../config/envoy.yaml#L102) | Tells the proxy to define the OpenAI cluster as all IP addresses returned by a DNS lookup on api.openai.com which should be contacted in a round-robin fashion. It also specifies that the list of IP addresses should be regularly queried to ensure changes are reflected. |
-| [Lines 117 to 129](../config/envoy.yaml#L117) | Tells the proxy to use TLS when contacting api.openai.com.                                                                                                                  |
+| [Lines 31 to 36](../config/envoy.yaml#L31)    | Tells the proxy to send everything that passes the filters and that goes to the path /v1/ to the OpenAI cluster (defined later) on behalf of the client.                    |
+| [Lines 38 to 51](../config/envoy.yaml#L38)    | Tells the proxy how to add CORS headers though it won't actually do the addition of the headers until the related filter.                                                   |
+| [Lines 53 to 63](../config/envoy.yaml#L53)    | Filters out requests to the health check "/ping" and handles it without passing the request onwards.                                                                        |
+| [Lines 64 to 73](../config/envoy.yaml#L64)    | Stores the path of the request in a lookup for a later filter.                                                                                                              |
+| [Lines 74 to 76](../config/envoy.yaml#L74)    | Adds the CORS headers using the previously defined rules (Lines 37 to 50).                                                                                                  |
+| [Lines 77 to 98](../config/envoy.yaml#L77)    | Runs the Open Policy Agent when the path matches /v1/ and filters the requests based on running the rego scripts which are specified in opa.yaml.                           |
+| [Lines 99 to 101](../config/envoy.yaml#L99)   | Runs the HTTP router which is required.                                                                                                                                     |
+| [Lines 103 to 116](../config/envoy.yaml#L103) | Tells the proxy to define the OpenAI cluster as all IP addresses returned by a DNS lookup on api.openai.com which should be contacted in a round-robin fashion. It also specifies that the list of IP addresses should be regularly queried to ensure changes are reflected. |
+| [Lines 118 to 130](../config/envoy.yaml#L118) | Tells the proxy to use TLS when contacting api.openai.com.                                                                                                                  |
 
 
 ### opa.yaml
@@ -125,7 +127,7 @@ the requests.
 | [Line 5](../config/authz.rego#L5)           | Functions and variables are imported from `openai.rego`.                                         |
 | [Line 6](../config/authz.rego#L6)           | Functions and variables are imported from `webapp.rego`.                                         |
 | [Lines 11 to 13](../config/authz.rego#L11)  | OPTIONS requests are approved so that any CORS preflight requests complete.                      |
-| [Lines 16 and 17](../config/authz.rego#L16) | User authentication is checked. See `webapp.rego` for details.                                   |
+| [Lines 16 and 17](../config/authz.rego#L16) | User authorization is checked. See `webapp.rego` for details.                                   |
 | [Lines 18 and 19](../config/authz.rego#L18) | The server configuration environment variable `OPENAI_API_KEY` existence is checked. This ensures a less confusing error message; it is not essential for a production implementation. |
 | [Lines 20 to 24](../config/authz.rego#L20)  | Any POST requests going to the completion endpoint are moderated. See `openai.rego` for details. |
 | [Line 25](../config/authz.rego#L25)         | All checks passed: the request is forwarded to OpenAI.                                           |
@@ -136,8 +138,9 @@ if the client is authenticated along with the reply that is sent when authentica
 
 | line(s)                                     | purpose                                                                                          |
 | ------------------------------------------- | ------------------------------------------------------------------------------------------------ |
-| [Lines 7 to 12](../config/webapp.rego#L7)   | Defines the error message sent if request authentication fails. |
-| [Lines 15 to 27](../config/webapp.rego#L15) | Sends a request to `/authenticated` on the example app while including all cookies. The example app validates the cookie session and returns `200 OK` when the request is authenticated, otherwise it returns `403 Forbidden`. The rego code checks the status code and returns `true` when the request is authenticated. |
+| [Line 6](../config/webapp.rego#L6)   | Reads the environment variable, `EXAMPLE_APP_JWT_SECRET`, into a variable with the default value `"Default JWT secret"`. The same default is used on the example app for ease of configuration. In a production quality application, however, this should always be set from the environment variable. |
+| [Lines 9 to 14](../config/webapp.rego#L9)   | Defines the error message sent if request authentication fails. |
+| [Lines 17 to 34](../config/webapp.rego#L17) | Checks to see if the request contained a valid JSON Web Token which authorizes the user to use the OpenAI chat completions API. This makes use of a secret shared between the example app and the proxy to check that the JWT is valid. |
 
 ### openai.rego
 
@@ -167,11 +170,22 @@ The [`config/log.rego`](../config/log.rego) file ensures that sensitive informat
 
 ## Component 3: the integrator authentication endpoint
 
-The nodejs server provides an [`/authenticated`](../example-app/index.js#L56) endpoint which can be used to check if the caller is logged in.
+The nodejs server provides a [`/jsonwebtoken`](../example-app/index.js#L57) endpoint which can be used to generate a signed JSON Web Token authorizing the request.
 
-This is called by the application itself and by the Open Policy Agent in the `webapp.rego` script.
+This is called by the example-app and then included in the `authorization` header
+with the request to the envoy proxy.
 
-In this example application, this authentication component has been simplified to illustrate the allow and reject states.
+The envoy proxy then [validates this JWT](../config/webapp.rego#L25) as part of
+the request processing. This ensures the caller is authorized before forwarding
+the request to OpenAI.
+
+Alternatively, implement this by passing the session cookie to the proxy and
+having the proxy call the `/authenticated` endpoint.
+
+In this example application, the authentication component has been simplified to
+illustrate the allow and reject states. For example, a dummy database with
+hardcoded credentials is used instead of a real database. As well, the JWT is
+signed with a shared secret rather than a public/private certificate pair.
 
 A production configuration must be tailored to the application’s production authentication requirements.
 
